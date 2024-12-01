@@ -9,16 +9,15 @@ main = do
   contents <- readFile "./day1/input.txt"
 
   let fileLines = map words (lines contents)
-      firstElements = sort $ map (read . head) fileLines :: [Int]
-      secondElements = sort $ map (read . last) fileLines :: [Int]
-      differences = zipWith (\x y -> abs (x - y)) firstElements secondElements
+      (leftColumn, rightColumn) = unzip $ map (\x -> (read (head x), read (last x))) fileLines :: ([Int], [Int])
+      differences = zipWith (\x y -> abs (x - y)) (sort leftColumn) (sort rightColumn)
       summedDifferences = sum differences
 
   putStrLn $ "Part 1 answer (1970720): " ++ show summedDifferences
 
   putStrLn "\nDay 1, Part 2"
 
-  let similarities = map (\x -> length $ filter (== x) secondElements) firstElements
-      totalScore = sum $ zipWith (*) firstElements similarities
+  let similarities = map (\x -> length $ filter (== x) rightColumn) leftColumn
+      totalScore = sum $ zipWith (*) leftColumn similarities
 
   putStrLn $ "Part 2 answer (17191599): " ++ show totalScore
