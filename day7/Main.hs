@@ -6,12 +6,7 @@ import Control.Monad (replicateM)
 import Data.Foldable (find, foldl')
 import Lib (splitOn)
 
-operatorsPart1 :: [String]
-operatorsPart1 = ["+", "*"]
-
-operatorsPart2 :: [String]
-operatorsPart2 = ["+", "*", "||"]
-
+-- This is the important part where all the operator combinations are generated lazily
 getAllOperatorCombinations :: [String] -> [String] -> [[String]]
 getAllOperatorCombinations l = replicateM (length l - 1)
 
@@ -26,47 +21,56 @@ interleave xs [] = map Left xs
 interleave (x : xs) (y : ys) = Left x : Right y : interleave xs ys
 
 getInterleavedList :: [String] -> [String] -> [[String]]
-getInterleavedList l ops = map (map extractValue . interleave l) $ getAllOperatorCombinations l ops
+getInterleavedList numbersList operatorsList =
+  map
+    ( map
+        extractValue
+        . interleave numbersList
+    )
+    $ getAllOperatorCombinations numbersList operatorsList
 
-calculatePart1 :: Int -> [String] -> Int
-calculatePart1 target = fst . foldl' step (0, "+")
-  where
-    step (runningTotal, op) item =
-      case item of
-        "+" -> (runningTotal, "+")
-        "*" -> (runningTotal, "*")
-        n ->
-          let num = read n :: Int
-           in if op == "+"
-                then (runningTotal + num, op)
-                else (runningTotal * num, op)
+calculate :: ((Int, String) -> String -> (Int, String)) -> Int -> [String] -> Int
+calculate reducerFn target = fst . foldl' reducerFn (0, "+")
 
-performCalculationsPart1 :: String -> Int -> [Int]
-performCalculationsPart1 l target =
-  let strList = filter (not . null) (splitOn ' ' l)
-      interleavedList = getInterleavedList strList operatorsPart1
-   in map (calculatePart1 target) interleavedList
+performCalculations :: [String] -> (Int -> [String] -> Int) -> String -> Int -> [Int]
+performCalculations operations calcFn numbersList targetNumber =
+  let strList = filter (not . null) (splitOn ' ' numbersList)
+      interleavedList = getInterleavedList strList operations
+   in map (calcFn targetNumber) interleavedList
 
-calculatePart2 :: Int -> [String] -> Int
-calculatePart2 target = fst . foldl' step (0, "+")
-  where
-    step (runningTotal, op) item =
-      case item of
-        "+" -> (runningTotal, "+")
-        "*" -> (runningTotal, "*")
-        "||" -> (runningTotal, "||")
-        n ->
-          let num = read n :: Int
-           in case op of
-                "+" -> (runningTotal + num, op)
-                "*" -> (runningTotal * num, op)
-                "||" -> (read (show runningTotal ++ n), op)
+getResult :: [[String]] -> (String -> Int -> [Int]) -> Int
+getResult input calcFn =
+  sum $
+    map ((\v -> read v :: Int) . head) $
+      filter
+        ( \[targetTotal, numbersList] ->
+            let targetNumber = read targetTotal :: Int
+                match = find (== targetNumber) $ calcFn numbersList targetNumber
+             in not (null match)
+        )
+        input
 
-performCalculationsPart2 :: String -> Int -> [Int]
-performCalculationsPart2 l target =
-  let strList = filter (not . null) (splitOn ' ' l)
-      interleavedList = getInterleavedList strList operatorsPart2
-   in map (calculatePart2 target) interleavedList
+reducerPart1 :: (Int, String) -> String -> (Int, String)
+reducerPart1 (runningTotal, op) item = case item of
+  "+" -> (runningTotal, "+")
+  "*" -> (runningTotal, "*")
+  n ->
+    let num = read n :: Int
+     in case op of
+          "+" -> (runningTotal + num, op)
+          "*" -> (runningTotal * num, op)
+
+reducerPart2 :: (Int, String) -> String -> (Int, String)
+reducerPart2 (runningTotal, op) item = case item of
+  "+" -> (runningTotal, "+")
+  "*" -> (runningTotal, "*")
+  "||" -> (runningTotal, "||")
+  n ->
+    let num = read n :: Int
+     in case op of
+          "+" -> (runningTotal + num, op)
+          "*" -> (runningTotal * num, op)
+          "||" -> (read (show runningTotal ++ n), op)
 
 main :: IO ()
 main = do
@@ -76,30 +80,12 @@ main = do
 
   let operations = lines contents
       formattedInput = map (splitOn ':') operations
-      results =
-        sum $
-          map ((\v -> read v :: Int) . head) $
-            filter
-              ( \[targetTotal, l] ->
-                  let n = read targetTotal :: Int
-                      match = find (== n) $ performCalculationsPart1 l n
-                   in not (null match)
-              )
-              formattedInput
+      result = getResult formattedInput $ performCalculations ["+", "*"] $ calculate reducerPart1
 
-  putStrLn $ "Part 1 answer (267566105056): " ++ show results
+  putStrLn $ "Part 1 answer (267566105056): " ++ show result
 
   putStrLn "\nDay 7, Part 2"
 
-  let result =
-        sum $
-          map ((\v -> read v :: Int) . head) $
-            filter
-              ( \[targetTotal, l] ->
-                  let n = read targetTotal :: Int
-                      match = find (== n) $ performCalculationsPart2 l n
-                   in not (null match)
-              )
-              formattedInput
+  let result = getResult formattedInput $ performCalculations ["+", "*", "||"] $ calculate reducerPart2
 
   putStrLn $ "Part 2 answer (116094961956019): " ++ show result
