@@ -3,24 +3,10 @@ module Main where
 import Data.Foldable (find)
 import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
+import Lib (getCharAtPosition)
 
 indexedList :: [a] -> [(Int, a)]
 indexedList = zip [0 ..]
-
-safeGetList :: [a] -> Int -> Maybe a
-safeGetList xs index
-  | index < 0 || index >= length xs = Nothing
-  | otherwise = Just (xs !! index)
-
-safeGetChar :: String -> Int -> Maybe Char
-safeGetChar xs index
-  | index < 0 || index >= length xs = Nothing
-  | otherwise = Just (xs !! index)
-
-getCharAtPosition :: Char -> [String] -> Int -> Int -> Char
-getCharAtPosition defaultValue list x y = case safeGetList list y of
-  Just line -> fromMaybe defaultValue (safeGetChar line x)
-  Nothing -> defaultValue
 
 main :: IO ()
 main = do
@@ -60,6 +46,6 @@ main = do
 
   putStrLn $ "Part 1 answer (5080): " ++ show total
 
-  -- putStrLn "\nDay 6, Part 2"
+-- putStrLn "\nDay 6, Part 2"
 
-  -- putStrLn $ "Part 2 answer (): "
+-- putStrLn $ "Part 2 answer (): "

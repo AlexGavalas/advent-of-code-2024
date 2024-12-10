@@ -2,6 +2,7 @@ module Main where
 
 import Data.List (transpose)
 import Data.Maybe (fromMaybe)
+import Lib (getCharAtPosition)
 import Text.Regex.PCRE ((=~))
 
 countXmas :: String -> Int
@@ -18,21 +19,6 @@ rightToLeftDiagonals [] = []
 rightToLeftDiagonals xs = [extractDiagonal xs i | i <- [0 .. (length xs - 1)]]
   where
     extractDiagonal xs start = [xs !! (i + start) !! (length (head xs) - 1 - i) | i <- [0 .. min (length xs - 1 - start) (length (head xs) - 1)]]
-
-safeGetList :: [a] -> Int -> Maybe a
-safeGetList xs index
-  | index < 0 || index >= length xs = Nothing
-  | otherwise = Just (xs !! index)
-
-safeGetChar :: String -> Int -> Maybe Char
-safeGetChar xs index
-  | index < 0 || index >= length xs = Nothing
-  | otherwise = Just (xs !! index)
-
-getCharAtPosition :: Char -> [String] -> Int -> Int -> Char
-getCharAtPosition defaultValue list x y = case safeGetList list y of
-  Just line -> fromMaybe defaultValue (safeGetChar line x)
-  Nothing -> defaultValue
 
 main :: IO ()
 main = do
