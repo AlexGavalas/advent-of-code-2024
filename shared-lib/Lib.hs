@@ -9,17 +9,17 @@ splitOn delimiter = foldr f [[]]
       | c == delimiter = [] : acc
       | otherwise = (c : x) : xs
 
-getList :: [a] -> Int -> Maybe a
+getList :: [[a]] -> Int -> Maybe [a]
 getList xs index
   | index < 0 || index >= length xs = Nothing
   | otherwise = Just (xs !! index)
 
-getCharacter :: String -> Int -> Maybe Char
+getCharacter :: [a] -> Int -> Maybe a
 getCharacter xs index
   | index < 0 || index >= length xs = Nothing
   | otherwise = Just (xs !! index)
 
-getCharAtPosition :: Char -> [String] -> Int -> Int -> Char
+getCharAtPosition :: a -> [[a]] -> Int -> Int -> a
 getCharAtPosition defaultValue list x y = case getList list y of
   Just line -> fromMaybe defaultValue (getCharacter line x)
   Nothing -> defaultValue
