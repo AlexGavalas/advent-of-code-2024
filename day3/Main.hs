@@ -9,12 +9,12 @@ isDo :: String -> Bool
 isDo = (== "do()")
 
 performCalculations :: (Bool, Int) -> String -> (Bool, Int)
-performCalculations (shouldProcessItem, acc) item
-  | isDont item = (False, acc)
-  | isDo item = (True, acc)
+performCalculations (shouldProcessItem, currentSum) item
+  | isDont item = (False, currentSum)
+  | isDo item = (True, currentSum)
   | otherwise =
       let [n1, n2] = concatMap (tail . map read) (item =~ "(\\d+),(\\d+)" :: [[String]])
-       in (shouldProcessItem, acc + if shouldProcessItem then n1 * n2 else 0)
+       in (shouldProcessItem, currentSum + if shouldProcessItem then n1 * n2 else 0)
 
 main :: IO ()
 main = do
